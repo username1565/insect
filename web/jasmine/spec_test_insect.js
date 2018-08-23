@@ -13,7 +13,7 @@ function insect(line) {
 	// Run insect
 	var res = Insect.repl(Insect.fmtJqueryTerminal)(insectEnv)(line);
 	insectEnv = res.newEnv;
-
+	
 	// Handle shell commands
 	if (res.msgType == "clear") {
 		// Clear screen:
@@ -27,7 +27,6 @@ function insect(line) {
 		return "";
 	}
 	//return res.msg;	//return full response
-	//console.log(res.msg);
 	var result = res.msg.split("=")[1];		//response only after "="
 	var result = result.replace(" [[;;;hl-value]", '').replace('] [[;;;hl-unit]',' ').replace(']', '');
 	if(result.indexOf('[[;;;hl-unit]')!==-1){result = result.replace('[[;;;hl-unit]',' ').replace(']', '');}
@@ -65,71 +64,89 @@ function expected_response(value, unit, convert){
 	//RUN TESTS
 
 describe("Insect-test 1. Object V (peta- kibi- nano- atto-)", function () {
-	it('new L(P.kibi,["kibi","Ki","киби","Ки"])', function () {
-		expect(insect('1.65 Mibits')).toEqual('1.65 Mibit');
+
+	it('new L(P.kibi,["kibi","Kibi","Ki","киби","Киби","Ки"])', function () {
 		expect(insect('5 kibibyte')).toEqual('5 KiB');
+		expect(insect('5 Kibibyte')).toEqual('5 KiB');
 		expect(insect('8.5 Kiтесла')).toEqual('8.5 KiT');
 		expect(insect('1 кибиБайт -> Байт')).toEqual('1024 B');
+		expect(insect('1 КибиБайт -> Байт')).toEqual('1024 B');
 		expect(insect('6 КиЗв')).toEqual('6 KiSv');
     });
 	
-	it('new L(P.mebi,["mebi","Mi","меби","Mи"])', function () {
-		expect(insect('1.65 мебиWb')).toEqual('1.65 MiWb');
+	it('new L(P.mebi,["mebi","Mebi","Mi","меби","Меби","Mи"])', function () {
 		expect(insect('1.65 mebipascal')).toEqual('1.65 MiPa');
+		expect(insect('1.65 Mebipascal')).toEqual('1.65 MiPa');
+		expect(insect('1.65 Mibits')).toEqual('1.65 Mibit');
 		expect(insect('1.83 мебилюмен')).toEqual('1.83 Milm');
+		expect(insect('1.83 Мебилюмен')).toEqual('1.83 Milm');
 		expect(insect('0.45 MиФ')).toEqual('0.45 MiF');
 	});
 	
-	it('new L(P.gibi,["gibi","Gi","гиби","Ги"])', function () {
+	it('new L(P.gibi,["gibi","Gibi","гиби","Гиби"])		//+ [Gi, Ги] after giga G', function () {
 		expect(insect('1.84865168435 gibiтонна')).toEqual('1.84865 Giton');
+		expect(insect('1.84865168435 Gibiтонна')).toEqual('1.84865 Giton');
+		expect(insect('9.64 гибибайт')).toEqual('9.64 GiB');
+		expect(insect('9.64 ГибиБайт')).toEqual('9.64 GiB');
 		expect(insect('2 GiB')).toEqual('2 GiB');
-		expect(insect('9.64 гибиБайт')).toEqual('9.64 GiB');
-		expect(insect('0.486 Гиангстрем')).toEqual('0.486 GiÅ');
+		expect(insect('0.486 ГиÅ')).toEqual('0.486 GiÅ');
 	});
 
-	it('new L(P.tebi,["tebi","Ti","теби","Ти"])', function () {
+	it('new L(P.tebi,["tebi","Tebi","Ti","теби","Теби","Ти"])', function () {
 		expect(insect('6.8 tebiатм')).toEqual('6.8 Tiatm');
+		expect(insect('6.8 Tebiатм')).toEqual('6.8 Tiatm');
 		expect(insect('9.46156 Tipixel')).toEqual('9.46156 Tipx');
 		expect(insect('864.18 тебиΩ')).toEqual('864.18 TiΩ');
+		expect(insect('864.18 ТебиΩ')).toEqual('864.18 TiΩ');
 		expect(insect('0.486 Тимоль')).toEqual('0.486 Timol');
 	});
 	
-	it('new L(P.pebi,["pebi","Pi","пеби","Пи"])', function () {
+	it('new L(P.pebi,["pebi","Pebi","Pi","пеби","Пеби","Пи"])', function () {
 		expect(insect('154.48 pebihertz')).toEqual('154.48 PiHz');
+		expect(insect('154.48 Pebihertz')).toEqual('154.48 PiHz');
 		expect(insect('1 Piгрей')).toEqual('1 PiGy');
 		expect(insect('8 пебипарсек')).toEqual('8 Piparsec');
+		expect(insect('8 Пебипарсек')).toEqual('8 Piparsec');
 		expect(insect('7.65 Пиsec')).toEqual('7.65 Pis'); //Это не письки, это пебисекунды.
 	});
 
-	it('new L(P.exbi,["exbi","Ei","эксби","Эи"])', function () {
+	it('new L(P.exbi,["exbi","Exbi","Ei","эксби","Эксби","Эи"])', function () {
 		expect(insect('exbibyte')).toEqual('1 EiB');
+		expect(insect('Exbibyte')).toEqual('1 EiB');
 		expect(insect('EiДжоуль')).toEqual('1 EiJ');
 		expect(insect('18 PiWh to эксбиДжоуль')).toEqual('63.2813 EiJ');
-		expect(insect('48 эксбигектар')).toEqual('48 Eiha'); //Это никакие не эксгибиционисты.
+		expect(insect('18 PiWh to ЭксбиДжоуль')).toEqual('63.2813 EiJ');
+		expect(insect('48 ЭиФ')).toEqual('48 EiF'); //Это никакие не эксгибиционисты.
 	});
 
-	it('new L(P.zebi,["zebi","Zi","зеби","Зи"])', function () {
+	it('new L(P.zebi,["zebi","Zebi","Zi","зеби","Зеби","Зи"])', function () {
 		expect(insect('zebiметр')).toEqual('1 Zim');
+		expect(insect('Zebiметр')).toEqual('1 Zim');
 		expect(insect('Zigrams')).toEqual('1 Zig'); //это не зига, а зебиграммы
 		expect(insect('(1 EiW * 1024) -> зебиватты')).toEqual('1 ZiW'); 						//ok
+		expect(insect('(1 EiW * 1024) -> Зебиватты')).toEqual('1 ZiW'); 						//ok
 		expect(insect('8 ЗиЗв')).toEqual('8 ZiSv');
 	});
 	
-	it('new L(P.yobi,["yobi","Yi","йоби","Йи"])', function () {
+	it('new L(P.yobi,["yobi","Yobi","Yi","йоби","Йоби","Йи"])', function () {
 		expect(insect('yobibyte')).toEqual('1 YiB');
+		expect(insect('Yobibyte')).toEqual('1 YiB');
 		expect(insect('(2^80) bit -> Yibit')).toEqual('1 Yibit'); 								//это не https://yobit.net
 		expect(insect('(14 зебиминут * 100) -> йобичасы')).toEqual('0.0227865 Yih');
+		expect(insect('(14 зебиминут * 100) -> Йобичасы')).toEqual('0.0227865 Yih');
 		expect(insect('1 Йиlitres to zebiлитры')).toEqual('1024 ZiL');
 	});
 
-	it('new L(P.atto,["atto","a","атто","а"])', function () {
+	it('new L(P.atto,["atto","Atto","a","атто","Атто","а"])', function () {
 		expect(insect('1 attoseconds -> femtoseconds')).toEqual('0.001 fs');
+		expect(insect('1 Attoseconds -> femtoseconds')).toEqual('0.001 fs');
 		expect(insect('5 afps')).toEqual('5 aframe/s');
 		expect(insect('0.25 аттосекунды')).toEqual('0.25 as');
-		expect(insect('6 адж')).toEqual('6 aJ');
+		expect(insect('0.25 Аттосекунды')).toEqual('0.25 as');
+		expect(insect('6 аДж')).toEqual('6 aJ');
 	});
 
-	it('new L(P.femto,["femto","f","фемто","ф"])', function () {
+	it('new L(P.femto,["femto","Femto","f","фемто","Фемто","ф"])', function () {
 		//expect(insect('1 femtometer -> femtomiles')).toEqual('FEMTOMILES NOT WORKING');
 		//NOT WORKING NO ONE ENGLISH units with atto-femto-peta...
 		
@@ -145,75 +162,95 @@ describe("Insect-test 1. Object V (peta- kibi- nano- atto-)", function () {
 		//	See https://github.com/sharkdp/insect/issues/163
 		
 		expect(insect('1 femtometer -> miles')).toEqual('6.21371e-19 mi');
-		expect(insect('5 пикофарад -> фемтофарады')).toEqual('5000 fF');
-		expect(insect('18 фемтоньютон')).toEqual('18 fN');
+		expect(insect('1 Femtometer -> miles')).toEqual('6.21371e-19 mi');
+		expect(insect('1 fm -> miles')).toEqual('6.21371e-19 mi');
+		expect(insect('5 фемтофарад -> пикофарады')).toEqual('0.005 pF');
+		expect(insect('5 Фемтофарад -> пикофарады')).toEqual('0.005 pF');
 		expect(insect('6 фsiemens')).toEqual('6 fS');
 	});
 
-	it('new L(P.pico,["pico","p","пико","п"])', function () {
+	it('new L(P.pico,["pico","Pico","пико","Пико"])	//+[p,п] after peta [P,пета]', function () {
 		expect(insect('picofarad')).toEqual('1 pF');
-		expect(insect('pfarads')).toEqual('1 pF');
+		expect(insect('Picofarad')).toEqual('1 pF');
 		expect(insect('пикофарад')).toEqual('1 pF');
+		expect(insect('Пикофарад')).toEqual('1 pF');
+		expect(insect('pfarads')).toEqual('1 pF');
 		expect(insect('пФ')).toEqual('1 pF');
 	});
 
-	it('new L(P.nano,["nano","n","нано","н"])', function () {
+	it('new L(P.nano,["nano","Nano","n","нано","Нано","н"])', function () {
 		expect(insect('nanoseconds')).toEqual('1 ns');
+		expect(insect('Nanoseconds')).toEqual('1 ns');
 		expect(insect('ns')).toEqual('1 ns');
 		expect(insect('наносекунда')).toEqual('1 ns');
+		expect(insect('Наносекунда')).toEqual('1 ns');
 		expect(insect('нс')).toEqual('1 ns');
 	});
 
-	it('new L(P.micro,["micro","u","\u00b5","\u03bc","микро","мк"])', function () {
+	it('new L(P.micro,["micro","Micro","u","\u00b5","\u03bc","микро","Микро","мк"])', function () {
 		expect(insect('micrometer')).toEqual('1 µm');
+		expect(insect('Micrometer')).toEqual('1 µm');
 		expect(insect('\u00b5m')).toEqual('1 µm');
 		expect(insect('µm')).toEqual('1 µm');		//'\u00b5'
 		expect(insect('\u03bcm')).toEqual('1 µm');
 		expect(insect('µm')).toEqual('1 µm');		//'\u03bc'
 		expect(insect('микрометр')).toEqual('1 µm');
-		expect(insect('мкм')).toEqual('1 µm');
+		expect(insect('Микрометр')).toEqual('1 µm');
+		expect(insect('мкс')).toEqual('1 µs');
 	});
 
-	it('new L(P.milli,["milli","m","милли","м"])', function () {
+	it('new L(P.milli,["milli","Milli","милли","Милли"])//+ [m, м] after mega [M, М]', function () {
 		expect(insect('milliliter')).toEqual('1 mL');
-		expect(insect('ml')).toEqual('1 mL');
+		expect(insect('Milliliter')).toEqual('1 mL');
 		expect(insect('миллилитр')).toEqual('1 mL');
+		expect(insect('Миллилитр')).toEqual('1 mL');
+		expect(insect('ml')).toEqual('1 mL');
 		expect(insect('мл')).toEqual('1 mL');
 		
-		//an exception - 2 m[м] letter.
+		//an exception - 2 letter. m[м]
 		expect(insect('мм -> cm')).toEqual('0.1 cm');	
 		expect(insect('mm to meter')).toEqual('0.001 m');	
+		expect(insect('мm to meter')).toEqual('0.001 m');	
+		expect(insect('mм to meter')).toEqual('0.001 m');	
 	});
 
-	it('new L(P.centi,["centi","c","санти","с"])', function () {
+	it('new L(P.centi,["centi","Centi","c","санти","Санти","с"])', function () {
 		expect(insect('centimeter')).toEqual('1 cm');
+		expect(insect('Centimeter')).toEqual('1 cm');
 		expect(insect('cm')).toEqual('1 cm');
 		expect(insect('сантиметр')).toEqual('1 cm');
+		expect(insect('Сантиметр')).toEqual('1 cm');
 		expect(insect('см')).toEqual('1 cm');	
 	});
 
-	it('new L(P.deci,["deci","d","деци","д"])', function () {
+	it('new L(P.deci,["deci","Deci","d","деци","Деци","д"])', function () {
 		expect(insect('decimeter')).toEqual('1 dm');
+		expect(insect('Decimeter')).toEqual('1 dm');
 		expect(insect('dm')).toEqual('1 dm');
 		expect(insect('дециметр')).toEqual('1 dm');
+		expect(insect('Дециметр')).toEqual('1 dm');
 		expect(insect('дм')).toEqual('1 dm');	
 	});
 	
-	it('new L(P.hecto,["hecto","h","гекто","г"])', function () {
+	it('new L(P.hecto,["hecto","Hecto","h","гекто","Гекто"])//+ [г] after giga [Г]', function () {
 		expect(insect('hectopascal')).toEqual('1 hPa');
+		expect(insect('Hectopascal')).toEqual('1 hPa');
 		expect(insect('hPa')).toEqual('1 hPa');
 		expect(insect('гектопаскаль')).toEqual('1 hPa');
+		expect(insect('Гектопаскаль')).toEqual('1 hPa');
 		expect(insect('гПа')).toEqual('1 hPa');	
 	});
-	
-	it('new L(P.kilo,["kilo","k","кило","к"])', function () {
+
+	it('new L(P.kilo,["kilo","Kilo","k","кило","Кило","к"])', function () {
 		expect(insect('kilometer')).toEqual('1 km');
+		expect(insect('Kilometer')).toEqual('1 km');
 		expect(insect('km')).toEqual('1 km');
 		expect(insect('километр')).toEqual('1 km');
+		expect(insect('Километр')).toEqual('1 km');
 		expect(insect('км')).toEqual('1 km');	
 	});
 
-	it('new L(P.mega,["Mega","mega","M","Мега","мега","М"])', function () {
+	it('new L(P.mega,["mega","Mega","мега","Мега","M",/*latin*/"М"/*cyrillic*/])', function () {
 		expect(insect('MegaJoules')).toEqual('1 MJ');
 		expect(insect('megaJoules')).toEqual('1 MJ');
 		expect(insect('MJ')).toEqual('1 MJ');
@@ -222,31 +259,35 @@ describe("Insect-test 1. Object V (peta- kibi- nano- atto-)", function () {
 		expect(insect('МДж')).toEqual('1 MJ');	
 	});
 
-	it('new L(P.giga,["Giga","giga","G","гига","Гига","Г"])', function () {
-		expect(insect('GigaPa')).toEqual('1 GPa');
+	it('new L(P.giga,["giga","Giga","гига","Гига"]) //+ [G, Г] after Gi, Ги', function () {
 		expect(insect('gigaPa')).toEqual('1 GPa');
-		expect(insect('GPa')).toEqual('1 GPa');
-		expect(insect('ГигаПа')).toEqual('1 GPa');
+		expect(insect('GigaPa')).toEqual('1 GPa');
 		expect(insect('гигаПа')).toEqual('1 GPa');
+		expect(insect('ГигаПа')).toEqual('1 GPa');
+		expect(insect('GPa')).toEqual('1 GPa');
 		expect(insect('ГПа')).toEqual('1 GPa');	
 	});
 
-	it('new L(P.tera,["tera","T","тера","Т"])', function () {
+	it('new L(P.tera,["tera","Tera","T","тера","Тера","Т"])', function () {
 		expect(insect('terawatt')).toEqual('1 TW');
+		expect(insect('Terawatt')).toEqual('1 TW');
 		expect(insect('TW')).toEqual('1 TW');
 		expect(insect('тераватт')).toEqual('1 TW');
+		expect(insect('Тераватт')).toEqual('1 TW');
 		expect(insect('ТВт')).toEqual('1 TW');
 	});
 	
-	it('new L(P.peta,["peta","P","пета","П"])', function () {
+	it('new L(P.peta,["peta","Peta","P","пета","Пета","П"])', function () {
 		expect(insect('petawatt')).toEqual('1 PW');
+		expect(insect('Petawatt')).toEqual('1 PW');
 		expect(insect('PW')).toEqual('1 PW');
 		expect(insect('петаватт')).toEqual('1 PW');
+		expect(insect('Петаватт')).toEqual('1 PW');
 		expect(insect('ПВт')).toEqual('1 PW');
 		
 	});
 	
-	it('new L(P.exa,["Exa","exa","E","Экза","экза","Э"])', function () {
+	it('new L(P.exa,["exa","Exa","E","экза","Экза","Э"])', function () {
 		expect(insect('exawatt')).toEqual('1 EW');
 		expect(insect('Exawatt')).toEqual('1 EW');
 		expect(insect('EW')).toEqual('1 EW');
@@ -1403,7 +1444,7 @@ describe("Insect-test 3. Object P (British Units)", function () {
 });
 
 describe("Insect-test 4.", function () {
-	it("test1 - conversion commands("+'->'+', '+'\u2192'+', '+'\u279e'+', '+'to'+")", function () {
+	it("Сonversion commands("+'->'+', '+'\u2192'+', '+'\u279e'+', '+'to'+")", function () {
 		expect(insect('5 kJ -> kcal')).toEqual('1.19503 kcal');
 		expect(insect('5 kJ \u2192 kcal')).toEqual('1.19503 kcal');
 		expect(insect('5 kJ \u279e kcal')).toEqual('1.19503 kcal');
@@ -1413,9 +1454,20 @@ describe("Insect-test 4.", function () {
 	it("Some convertations:", function () {
 		expect(insect('840 ПВтч -> килокалории')).toEqual('722753000000000000 kcal');
 		expect(insect('(1800 W * 24 часа) -> megaджоулей')).toEqual('155.52 MJ');
+		expect(insect('840 ПВтч -> килокалории')).toEqual('722753000000000000 kcal');
+		expect(insect('(1800 W * 24 часа) -> megaджоулей')).toEqual('155.52 MJ');
+		expect(insect('987654321987654321987654321987.1234567890987654321 киловатт*часов to ExaJoules')).toEqual('3555560000000000000 EJ');
+		expect(insect('(150 ГВт ×800 ч) -> petaJoules')).toEqual('432 PJ');
+		expect(insect('(90 кВт × 12 часов -> гектокалории) to гигаджоули')).toEqual('3.888 GJ');
 	});
-	
-	
+});
+
+describe("Insect-test 5.", function () {
+	it("Test another digits and delimiters decoding", function () {
+		expect(insect('((+٣٬٤٥٦٫٧٨٩ ГВт + (-᱘𑱔𞥙,𝍥𐋤 мегаватт)) × ௨༥❼𐋠७𑇡២.೬௫᠗Ⅶ叄𐋩 Hours) -> ExaJoules')).toEqual('3206.3 EJ');
+		//this can be called by URL: ../index.html?q=((%2B٣٬٤٥٦٫٧٨٩%20ГВт%20%2B%20(-᱘𑱔𞥙,𝍥𐋤%20мегаватт))%20×%20௨༥❼𐋠७𑇡២.೬௫᠗Ⅶ叄𐋩%20Hours)%20->%20ExaJoules
+		//replaced symbols here is: %2B('+'), %20(' '). See url encode/decode: https://www.url-encode-decode.com/
+    });
 });
 
 //describe("empty commented test to copy", function () {

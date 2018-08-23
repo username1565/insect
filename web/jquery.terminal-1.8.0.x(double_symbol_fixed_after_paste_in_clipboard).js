@@ -1377,7 +1377,7 @@
                 clip.trigger('focus', [true]);
             }
             clip.one('input', function input(e) {
-				console.log('paste'); //this showing after submit if some text pasted in terminal, and then press any symbol. In this case symbol is doubled.
+				//console.log('paste'); //this showing after submit if some text pasted in terminal, and then press any symbol. In this case symbol is doubled.
                 //paste(e); //So paste function was been commented.
             });
             return true;
@@ -1609,6 +1609,8 @@
                 return $.terminal.substring(string, start, end);
             }
             function draw_cursor_line(string, position) {
+				string = replace_digits_and_interpretting_delimiters(string);
+				cursor.attr("title", replace_digits_and_interpretting_delimiters(string));
                 var len = string.length;
                 string = formatting(string);
                 if (position === len) {

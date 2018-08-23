@@ -1,5 +1,513 @@
-/*
+﻿/*
  decimal.js v7.5.1 https://github.com/MikeMcl/decimal.js/LICENCE */
+/*
+
+
+<!--
+	<font style="display:none;">
+		UNCOMMENT TO TEST
+	</font>
+	<input id="string" oninput="replace_digits_and_interpretting_delimiters(this.value);" size='200' value="test">
+	<div id="result"><div>
+-->
+<script>
+*/
+//+500 strings of code...
+//This function need to replace digits in the string from different numeral systems.
+//second function need to interpretting decimal and float delimiters.
+//Both this functions must to return the string with correctly formatted numbers, inside the string...
+
+//see tests in console.log() if this was been uncommented in the bottom...
+function replace_symbols(string, replace_comma_to){ //symbol can be a string.
+	string = string || 'string parameter was been undefined';
+	//default symbols. This can be another digits and delimiters.
+	var default_digits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', (replace_comma_to || ',')];
+	//var default_digits = ['A', 'b', 'C', 'd', 'E', 'f', 'G', 'h', 'I', 'j', 'dot', (replace_comma_to || "comma")]; //test other
+	var replaces = {
+		//table for replace digits 'symbol': (index in default digits)
+		',': 11, '.': 10, 		//Default decimal and float delimiters
+		'٬': 11, '٫': 10,		//Arabic decimal and float delimiters
+		'\uD800\uDEE0': 11,		//Coptic Epact delimiter for thousands
+	//one unicode charcode for one symbol:
+																						//Numeral system									charcode offset for numeral system
+		'0': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, //English, Arabic (this is default now)
+		'۰': 0, '۱': 1, '۲': 2, '۳': 3, '۴': 4, '۵': 5, '۶': 6, '۷': 7, '۸': 8, '۹': 9,	//Urdu												1728
+		'٠': 0, '١': 1, '٢': 2, '٣': 3, '۴': 4, '۵': 5, '۶': 6, '٧': 7, '٨': 8, '٩': 9,	//Persian (Farsi)/Dari/Pashto						not have static offset
+		'٠': 0, '١': 1, '٢': 2, '٣': 3, '٤': 4, '٥': 5, '٦': 6, '٧': 7, '٨': 8, '٩': 9,	//East Arabic										dictionary
+		'౦': 0, '౧': 1, '౨': 2, '౩': 3, '౪': 4, '౫': 5, '౬': 6, '౭': 7, '౮': 8, '౯': 9,	//Telugu											3126
+		'०': 0, '१': 1, '२': 2, '३': 3, '४': 4, '५': 5, '६': 6, '७': 7, '८': 8, '९': 9,	//hindi (Devanagari) (Indian)						2358
+		'൦': 0, '൧': 1, '൨': 2, '൩': 3, '൪': 4, '൫': 5, '൬': 6, '൭': 7, '൮': 8, '൯': 9,	//Malayalam (Indian)								3382
+		'୦': 0, '୧': 1, '୨': 2, '୩': 3, '୪': 4, '୫': 5, '୬': 6, '୭': 7, '୮': 8, '୯': 9,	//Odia, Oriya (Indian)								2870
+		'੦': 0, '੧': 1, '੨': 2, '੩': 3, '੪': 4, '੫': 5, '੬': 6, '੭': 7, '੮': 8, '੯': 9,	//Gurmukhi (Indian)									2614
+		'০': 0, '১': 1, '২': 2, '৩': 3, '৪': 4, '৫': 5, '৬': 6, '৭': 7, '৮': 8, '৯': 9,	//nagari, Asomiya (Assamese); Bengali (Indian)		2486
+		'૦': 0, '૧': 1, '૨': 2, '૩': 3, '૪': 4, '૫': 5, '૬': 6, '૭': 7, '૮': 8, '૯': 9,	//Gujarati (Indian)									2742
+		'೦': 0, '೧': 1, '೨': 2, '೩': 3, '೪': 4, '೫': 5, '೬': 6, '೭': 7, '೮': 8, '೯': 9,	//Kannada (Indian)									3254
+		'០': 0, '១': 1, '២': 2, '៣': 3, '៤': 4, '៥': 5, '៦': 6, '៧': 7, '៨': 8, '៩': 9,	//Khmer (Cambodia)									6064
+		'໐': 0, '໑': 1, '໒': 2, '໓': 3, '໔': 4, '໕': 5, '໖': 6, '໗': 7, '໘': 8, '໙': 9,	//Lao												3744
+		'᥆': 0, '᥇': 1, '᥈': 2, '᥉': 3, '᥊': 4, '᥋': 5, '᥌': 6, '᥍': 7, '᥎': 8, '᥏': 9,	//Limbu	(Extended kannada, Indian)					6422
+		'᠐': 0, '᠑': 1, '᠒': 2, '᠓': 3, '᠔': 4, '᠕': 5, '᠖': 6, '᠗': 7, '᠘': 8, '᠙': 9,	//Mongolian											6112
+		'၀': 0, '၁': 1, '၂': 2, '၃': 3, '၄': 4, '၅': 5, '၆': 6, '၇': 7, '၈': 8, '၉': 9,	//Myanmar digits (Burmese)							4112
+		'௦': 0, '௧': 1, '௨': 2, '௩': 3, '௪': 4, '௫': 5, '௬': 6, '௭': 7, '௮': 8, '௯': 9,	//Tamil												2998
+		'๐': 0, '๑': 1, '๒': 2, '๓': 3, '๔': 4, '๕': 5, '๖': 6, '๗': 7, '๘': 8, '๙': 9,	//Thai												3616
+		'༠': 0, '༡': 1, '༢': 2, '༣': 3, '༤': 4, '༥': 5, '༦': 6, '༧': 7, '༨': 8, '༩': 9,	//Tibetan											3824
+		'〇': 0, '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9,	//Chinese (everyday), Japanese1						dictionary
+		'零': 0, '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9,	//Japanese2											dictionary
+		'零': 0, '壹': 1, '貳': 2, '叄': 3, '肆': 4, '伍': 5, '陸': 6, '柒': 7, '捌': 8, '玖': 9,	//Chinese (formal1)									dictionary
+		'零': 0, '壹': 1, '贰': 2, '叁': 3, '肆': 4, '伍': 5, '陆': 6, '柒': 7, '捌': 8, '玖': 9,	//Chinese (formal2)									dictionary
+		'〇': 0, '〡': 1, '〢': 2, '〣': 3, '〤': 4, '〥': 5, '〦': 6, '〧': 7, '〨': 8, '〩': 9,	//Chinese (Suzhou, Hangzhou)						dictionary
+		'᧐': 0, '᧑': 1, '᧒': 2, '᧓': 3, '᧔': 4, '᧕': 5, '᧖': 6, '᧗': 7, '᧘': 8, '᧙': 9,	//New Tai Lue
+		'꧐': 0, '꧑': 1, '꧒': 2, '꧓': 3, '꧔': 4, '꧕': 5, '꧖': 6, '꧗': 7, '꧘': 8, '꧙': 9,	//Javanese
+		'߀': 0, '߁': 1, '߂': 2, '߃': 3, '߄': 4, '߅': 5, '߆': 6, '߇': 7, '߈': 8, '߉': 9,	//Additional arabic symbols
+		'෦': 0, '෧': 1, '෨': 2, '෩': 3, '෪': 4, '෫': 5, '෬': 6, '෭': 7, '෮': 8, '෯': 9,	//Сингальская письменность
+		'༳': 0, '༪': 1, '༫': 2, '༬': 3, '༭': 4, '༮': 5, '༯': 6, '༰': 7, '༱': 8, '༲': 9,	//half tibetan
+		'႐': 0, '႑': 1, '႒': 2, '႓': 3, '႔': 4, '႕': 5, '႖': 6, '႗': 7, '႘': 8, '႙': 9,	//Myanmar Shan
+		'៰': 0, '៱': 1, '៲': 2, '៳': 3, '៴': 4, '៵': 5, '៶': 6, '៷': 7, '៸': 8, '៹': 9,	//Khmer Symbols Lek Attak
+		'᪀': 0, '᪁': 1, '᪂': 2, '᪃': 3, '᪄': 4, '᪅': 5, '᪆': 6, '᪇': 7, '᪈': 8, '᪉': 9,	//Тай Тхам Tai Tham Hora
+		'᪐': 0, '᪑': 1, '᪒': 2, '᪓': 3, '᪔': 4, '᪕': 5, '᪖': 6, '᪗': 7, '᪘': 8, '᪙': 9,	//Tai Tham Tham
+		'᭐': 0, '᭑': 1, '᭒': 2, '᭓': 3, '᭔': 4, '᭕': 5, '᭖': 6, '᭗': 7, '᭘': 8, '᭙': 9,	//Baltian
+		'᮰': 0, '᮱': 1, '᮲': 2, '᮳': 3, '᮴': 4, '᮵': 5, '᮶': 6, '᮷': 7, '᮸': 8, '᮹': 9,	//Суданское письмо
+		'᱀': 0, '᱁': 1, '᱂': 2, '᱃': 3, '᱄': 4, '᱅': 5, '᱆': 6, '᱇': 7, '᱈': 8, '᱉': 9,	//Lepcha
+		'᱐': 0, '᱑': 1, '᱒': 2, '᱓': 3, '᱔': 4, '᱕': 5, '᱖': 6, '᱗': 7, '᱘': 8, '᱙': 9,	//Ol-chiki
+		'₀': 0, '₁': 1, '₂': 2, '₃': 3, '₄': 4, '₅': 5, '₆': 6, '₇': 7, '₈': 8, '₉': 9,	//Subscript
+		'꘠': 0, '꘡': 1, '꘢': 2, '꘣': 3, '꘤': 4, '꘥': 5, '꘦': 6, '꘧': 7, '꘨': 8, '꘩': 9,	//vai digit nine
+		'꣐': 0, '꣑': 1, '꣒': 2, '꣓': 3, '꣔': 4, '꣕': 5, '꣖': 6, '꣗': 7, '꣘': 8, '꣙': 9,	//Saurashtra digit nine
+		'꤀': 0, '꤁': 1, '꤂': 2, '꤃': 3, '꤄': 4, '꤅': 5, '꤆': 6, '꤇': 7, '꤈': 8, '꤉': 9,	//Kayah Li digit nine
+		'꧰': 0, '꧱': 1, '꧲': 2, '꧳': 3, '꧴': 4, '꧵': 5, '꧶': 6, '꧷': 7, '꧸': 8, '꧹': 9,	//Myanmar Tai Laing digit nine
+		'꩐': 0, '꩑': 1, '꩒': 2, '꩓': 3, '꩔': 4, '꩕': 5, '꩖': 6, '꩗': 7, '꩘': 8, '꩙': 9,	//Cham digit nine
+		'꯰': 0, '꯱': 1, '꯲': 2, '꯳': 3, '꯴': 4, '꯵': 5, '꯶': 6, '꯷': 7, '꯸': 8, '꯹': 9,	//Meetei Mayek Digit Nine
+		'０': 0, '１': 1, '２': 2, '３': 3, '４': 4, '５': 5, '６': 6, '７': 7, '８': 8, '９': 9,	//Fullwidth Digit Nine
+					//numeral systems without null
+				 'Ⅰ': 1, 'Ⅱ': 2, 'Ⅲ': 3, 'Ⅳ': 4, 'Ⅴ': 5, 'Ⅵ': 6, 'Ⅶ': 7, 'Ⅷ': 8, 'Ⅸ': 9,	//Roman
+				 '፩': 1, '፪': 2, '፫': 3, '፬': 4, '፭': 5, '፮': 6, '፯': 7, '፰': 8, '፱': 9, 	//Ge'ez (Ethiopic)
+				 '①': 1, '②': 2, '③': 3, '④': 4, '⑤': 5, '⑥': 6, '⑦': 7, '⑧': 8, '⑨': 9,	//circled
+				 '⑴': 1, '⑵': 2, '⑶': 3, '⑷': 4, '⑸': 5, '⑹': 6, '⑺': 7, '⑻': 8, '⑼': 9,	//в скобках (не индексируются как числа)
+				 '⒈': 1, '⒉': 2, '⒊': 3, '⒋': 4, '⒌': 5, '⒍': 6, '⒎': 7, '⒏': 8, '⒐': 9,	//с точкой (не индексируются как числа в хроме, при поиске чисел)
+				 '⓵': 1, '⓶': 2, '⓷': 3, '⓸': 4, '⓹': 5, '⓺': 6, '⓻': 7, '⓼': 8, '⓽': 9,	//double circled
+				 '❶': 1, '❷': 2, '❸': 3, '❹': 4, '❺': 5, '❻': 6, '❼': 7, '❽': 8, '❾': 9,	//Dingbat negative circled
+				 '➀': 1, '➁': 2, '➂': 3, '➃': 4, '➄': 5, '➅': 6, '➆': 7, '➇': 8, '➈': 9,	//Dingbat circled Sans-Serif
+				 '➊': 1, '➋': 2, '➌': 3, '➍': 4, '➎': 5, '➏': 6, '➐': 7, '➑': 8, '➒': 9,	//Dingbat negative circled Sans-Serif
+
+		//char_code for long unicode symbol:
+		//var symbol = '𓏺'; console.log('\\u'+symbol.charCodeAt(0).toString(16).toUpperCase()+'\\u'+symbol.charCodeAt(1).toString(16).toUpperCase());	
+		//symbol: console.log('\uCODE1\uCODE2');
+		//two charcodes for each symbol. See comments in the end for each string ->
+		'\uD801\uDCA0': 0, '\uD801\uDCA1': 1,'\uD801\uDCA2': 2,'\uD801\uDCA3': 3,'\uD801\uDCA4': 4,'\uD801\uDCA5': 5,'\uD801\uDCA6': 6,'\uD801\uDCA7': 7,'\uD801\uDCA8': 8,'\uD801\uDCA9': 9, //𐒠 𐒡 𐒢 𐒣 𐒤 𐒥 𐒦 𐒧 𐒨 𐒩	//Osmanya Digit Zero
+		'\uD804\uDCF0': 0, '\uD804\uDCF1': 1,'\uD804\uDCF2': 2,'\uD804\uDCF3': 3,'\uD804\uDCF4': 4,'\uD804\uDCF5': 5,'\uD804\uDCF6': 6,'\uD804\uDCF7': 7,'\uD804\uDCF8': 8,'\uD804\uDCF9': 9, //𑃰 𑃱 𑃲 𑃳 𑃴 𑃵 𑃶 𑃷 𑃸 𑃹	//Sora Sompeng Digit
+		'\uD804\uDD36': 0, '\uD804\uDD37': 1,'\uD804\uDD38': 2,'\uD804\uDD39': 3,'\uD804\uDD3A': 4,'\uD804\uDD3B': 5,'\uD804\uDD3C': 6,'\uD804\uDD3D': 7,'\uD804\uDD3E': 8,'\uD804\uDD3F': 9, //𑄶 𑄷 𑄸 𑄹 𑄺 𑄻 𑄼 𑄽 𑄾 𑄿	//Chakama, Chakma, Daingnet, Sakma, Sangma, Takam, Tsakma
+		'\uD804\uDDD0': 0, '\uD804\uDDD1': 1,'\uD804\uDDD2': 2,'\uD804\uDDD3': 3,'\uD804\uDDD4': 4,'\uD804\uDDD5': 5,'\uD804\uDDD6': 6,'\uD804\uDDD7': 7,'\uD804\uDDD8': 8,'\uD804\uDDD9': 9, //𑇐 𑇑 𑇒 𑇓 𑇔 𑇕 𑇖 𑇗 𑇘 𑇙	//Śāradā, Sarada or Sharada (Indian)
+		'\uD804\uDEF0': 0, '\uD804\uDEF1': 1,'\uD804\uDEF2': 2,'\uD804\uDEF3': 3,'\uD804\uDEF4': 4,'\uD804\uDEF5': 5,'\uD804\uDEF6': 6,'\uD804\uDEF7': 7,'\uD804\uDEF8': 8,'\uD804\uDEF9': 9, //𑋰 𑋱 𑋲 𑋳 𑋴 𑋵 𑋶 𑋷 𑋸 𑋹	//Khudabadi
+		'\uD805\uDEC0': 0, '\uD805\uDEC1': 1,'\uD805\uDEC2': 2,'\uD805\uDEC3': 3,'\uD805\uDEC4': 4,'\uD805\uDEC5': 5,'\uD805\uDEC6': 6,'\uD805\uDEC7': 7,'\uD805\uDEC8': 8,'\uD805\uDEC9': 9, //𑛀 𑛁 𑛂 𑛃 𑛄 𑛅 𑛆 𑛇 𑛈 𑛉	//Takri (Indian)
+		'\uD805\uDC50': 0, '\uD805\uDC51': 1,'\uD805\uDC52': 2,'\uD805\uDC53': 3,'\uD805\uDC54': 4,'\uD805\uDC55': 5,'\uD805\uDC56': 6,'\uD805\uDC57': 7,'\uD805\uDC58': 8,'\uD805\uDC59': 9, //𑑐 𑑑 𑑒 𑑓 𑑔 𑑕 𑑖 𑑗 𑑘 𑑙	//Newa script (Prachalit Nepal script)
+		'\uD805\uDCD0': 0, '\uD805\uDCD1': 1,'\uD805\uDCD2': 2,'\uD805\uDCD3': 3,'\uD805\uDCD4': 4,'\uD805\uDCD5': 5,'\uD805\uDCD6': 6,'\uD805\uDCD7': 7,'\uD805\uDCD8': 8,'\uD805\uDCD9': 9, //𑓐 𑓑 𑓒 𑓓 𑓔 𑓕 𑓖 𑓗 𑓘 𑓙	//Tirhuta
+		'\uD805\uDE50': 0, '\uD805\uDE51': 1,'\uD805\uDE52': 2,'\uD805\uDE53': 3,'\uD805\uDE54': 4,'\uD805\uDE55': 5,'\uD805\uDE56': 6,'\uD805\uDE57': 7,'\uD805\uDE58': 8,'\uD805\uDE59': 9, //𑙐 𑙑 𑙒 𑙓 𑙔 𑙕 𑙖 𑙗 𑙘 𑙙	//Modi script (Indian)
+		'\uD805\uDF30': 0, '\uD805\uDF31': 1,'\uD805\uDF32': 2,'\uD805\uDF33': 3,'\uD805\uDF34': 4,'\uD805\uDF35': 5,'\uD805\uDF36': 6,'\uD805\uDF37': 7,'\uD805\uDF38': 8,'\uD805\uDF39': 9, //𑜰 𑜱 𑜲 𑜳 𑜴 𑜵 𑜶 𑜷 𑜸 𑜹	//Ahom script (Indian)
+		'\uD806\uDCE0': 0, '\uD806\uDCE1': 1,'\uD806\uDCE2': 2,'\uD806\uDCE3': 3,'\uD806\uDCE4': 4,'\uD806\uDCE5': 5,'\uD806\uDCE6': 6,'\uD806\uDCE7': 7,'\uD806\uDCE8': 8,'\uD806\uDCE9': 9, //𑣠 𑣡 𑣢 𑣣 𑣤 𑣥 𑣦 𑣧 𑣨 𑣩	//Varang Kshiti (Indian)
+		'\uD807\uDC50': 0, '\uD807\uDC51': 1,'\uD807\uDC52': 2,'\uD807\uDC53': 3,'\uD807\uDC54': 4,'\uD807\uDC55': 5,'\uD807\uDC56': 6,'\uD807\uDC57': 7,'\uD807\uDC58': 8,'\uD807\uDC59': 9, //𑱐 𑱑 𑱒 𑱓 𑱔 𑱕 𑱖 𑱗 𑱘 𑱙	//Байсаки 11C00—11C6F
+		'\uD807\uDD50': 0, '\uD807\uDD51': 1,'\uD807\uDD52': 2,'\uD807\uDD53': 3,'\uD807\uDD54': 4,'\uD807\uDD55': 5,'\uD807\uDD56': 6,'\uD807\uDD57': 7,'\uD807\uDD58': 8,'\uD807\uDD59': 9, //𑵐 𑵑 𑵒 𑵓 𑵔 𑵕 𑵖 𑵗 𑵘 𑵙	//Masaram Gondi (Indian) 11D00—11D5F
+		'\uD81A\uDE60': 0, '\uD81A\uDE61': 1,'\uD81A\uDE62': 2,'\uD81A\uDE63': 3,'\uD81A\uDE64': 4,'\uD81A\uDE65': 5,'\uD81A\uDE66': 6,'\uD81A\uDE67': 7,'\uD81A\uDE68': 8,'\uD81A\uDE69': 9, //𖩠 𖩡 𖩢 𖩣 𖩤 𖩥 𖩦 𖩧 𖩨 𖩩	//Mro
+		'\uD81A\uDF50': 0, '\uD81A\uDF51': 1,'\uD81A\uDF52': 2,'\uD81A\uDF53': 3,'\uD81A\uDF54': 4,'\uD81A\uDF55': 5,'\uD81A\uDF56': 6,'\uD81A\uDF57': 7,'\uD81A\uDF58': 8,'\uD81A\uDF59': 9, //𖭐 𖭑 𖭒 𖭓 𖭔 𖭕 𖭖 𖭗 𖭘 𖭙	//Пахау хмонг (China), U+(16B00—16B8F)
+		'\uD835\uDFCE': 0, '\uD835\uDFCF': 1,'\uD835\uDFD0': 2,'\uD835\uDFD1': 3,'\uD835\uDFD2': 4,'\uD835\uDFD3': 5,'\uD835\uDFD4': 6,'\uD835\uDFD5': 7,'\uD835\uDFD6': 8,'\uD835\uDFD7': 9, //𝟎 𝟏 𝟐 𝟑 𝟒 𝟓 𝟔 𝟕 𝟖 𝟗	//digits
+		'\uD835\uDFD8': 0, '\uD835\uDFD9': 1,'\uD835\uDFDA': 2,'\uD835\uDFDB': 3,'\uD835\uDFDC': 4,'\uD835\uDFDD': 5,'\uD835\uDFDE': 6,'\uD835\uDFDF': 7,'\uD835\uDFE0': 8,'\uD835\uDFE1': 9, //𝟘 𝟙 𝟚 𝟛 𝟜 𝟝 𝟞 𝟟 𝟠 𝟡	//white ditits
+		'\uD835\uDFE2': 0, '\uD835\uDFE3': 1,'\uD835\uDFE4': 2,'\uD835\uDFE5': 3,'\uD835\uDFE6': 4,'\uD835\uDFE7': 5,'\uD835\uDFE8': 6,'\uD835\uDFE9': 7,'\uD835\uDFEA': 8,'\uD835\uDFEB': 9, //𝟢 𝟣 𝟤 𝟥 𝟦 𝟧 𝟨 𝟩 𝟪 𝟫	//another digits
+		'\uD835\uDFEC': 0, '\uD835\uDFED': 1,'\uD835\uDFEE': 2,'\uD835\uDFEF': 3,'\uD835\uDFF0': 4,'\uD835\uDFF1': 5,'\uD835\uDFF2': 6,'\uD835\uDFF3': 7,'\uD835\uDFF4': 8,'\uD835\uDFF5': 9, //𝟬 𝟭 𝟮 𝟯 𝟰 𝟱 𝟲 𝟳 𝟴 𝟵	//again...
+		'\uD835\uDFF6': 0, '\uD835\uDFF7': 1,'\uD835\uDFF8': 2,'\uD835\uDFF9': 3,'\uD835\uDFFA': 4,'\uD835\uDFFB': 5,'\uD835\uDFFC': 6,'\uD835\uDFFD': 7,'\uD835\uDFFE': 8,'\uD835\uDFFF': 9, //𝟶 𝟷 𝟸 𝟹 𝟺 𝟻 𝟼 𝟽 𝟾 𝟿	//and again.
+		'\uD83A\uDD50': 0, '\uD83A\uDD51': 1,'\uD83A\uDD52': 2,'\uD83A\uDD53': 3,'\uD83A\uDD54': 4,'\uD83A\uDD55': 5,'\uD83A\uDD56': 6,'\uD83A\uDD57': 7,'\uD83A\uDD58': 8,'\uD83A\uDD59': 9, //𞥐 𞥑 𞥒 𞥓 𞥔 𞥕 𞥖 𞥗 𞥘 𞥙	//Adlam (Niger-Congo language) char codes (1E900—1E95F)
+		'\uD83C\uDD01': 0, '\uD83C\uDD02': 1,'\uD83C\uDD03': 2,'\uD83C\uDD04': 3,'\uD83C\uDD05': 4,'\uD83C\uDD06': 5,'\uD83C\uDD07': 6,'\uD83C\uDD08': 7,'\uD83C\uDD09': 8,'\uD83C\uDD0A': 9, //🄁 🄂 🄃 🄄 🄅 🄆 🄇 🄈 🄉 🄊	//Digits with comma (1F100—1F1FF)
+				//No null here, see comments in the end of string ->
+			'\uD800\uDD07': 1,'\uD800\uDD08': 2,'\uD800\uDD09': 3,'\uD800\uDD0A': 4,'\uD800\uDD0B': 5,'\uD800\uDD0C': 6,'\uD800\uDD0D': 7,'\uD800\uDD0E': 8,'\uD800\uDD0F': 9, //!0 𐄇 𐄈 𐄉 𐄊 𐄋 𐄌 𐄍 𐄎 𐄏	//Aegean
+			'\uD802\uDDC0': 1,'\uD802\uDDC1': 2,'\uD802\uDDC2': 3,'\uD802\uDDC3': 4,'\uD802\uDDC4': 5,'\uD802\uDDC5': 6,'\uD802\uDDC6': 7,'\uD802\uDDC7': 8,'\uD802\uDDC8': 9, //!0 𐧀 𐧁 𐧂 𐧃 𐧄 𐧅 𐧆 𐧇 𐧈	//Meroitic Cursive
+			'\uD803\uDE60': 1,'\uD803\uDE61': 2,'\uD803\uDE62': 3,'\uD803\uDE63': 4,'\uD803\uDE64': 5,'\uD803\uDE65': 6,'\uD803\uDE66': 7,'\uD803\uDE67': 8,'\uD803\uDE68': 9, //!0 𐹠 𐹡 𐹢 𐹣 𐹤 𐹥 𐹦 𐹧 𐹨	//Rumi
+			'\uD804\uDC52': 1,'\uD804\uDC53': 2,'\uD804\uDC54': 3,'\uD804\uDC55': 4,'\uD804\uDC56': 5,'\uD804\uDC57': 6,'\uD804\uDC58': 7,'\uD804\uDC59': 8,'\uD804\uDC5A': 9, //!0 𑁒 𑁓 𑁔 𑁕 𑁖 𑁗 𑁘 𑁙 𑁚	//Brahmi
+			'\uD804\uDDE1': 1,'\uD804\uDDE2': 2,'\uD804\uDDE3': 3,'\uD804\uDDE4': 4,'\uD804\uDDE5': 5,'\uD804\uDDE6': 6,'\uD804\uDDE7': 7,'\uD804\uDDE8': 8,'\uD804\uDDE9': 9, //!0 𑇡 𑇢 𑇣 𑇤 𑇥 𑇦 𑇧 𑇨 𑇩	//Сингальские архаические (Sinhala Arhaic)
+			'\uD807\uDC5A': 1,'\uD807\uDC5B': 2,'\uD807\uDC5C': 3,'\uD807\uDC5D': 4,'\uD807\uDC5E': 5,'\uD807\uDC5F': 6,'\uD807\uDC60': 7,'\uD807\uDC61': 8,'\uD807\uDC62': 9, //!0 𑱚 𑱛 𑱜 𑱝 𑱞 𑱟 𑱠 𑱡 𑱢	//Байсаки2 (another digits)
+			'\uD809\uDC15': 1,'\uD809\uDC16': 2,'\uD809\uDC17': 3,'\uD809\uDC18': 4,'\uD809\uDC19': 5,'\uD809\uDC1A': 6,'\uD809\uDC1B': 7,'\uD809\uDC1C': 8,'\uD809\uDC1D': 9, //!0 𒐕 𒐖 𒐗 𒐘 𒐙 𒐚 𒐛 𒐜 𒐝	//Клинописные цифры (Cuneiform digits)
+			'\uD834\uDF60': 1,'\uD834\uDF61': 2,'\uD834\uDF62': 3,'\uD834\uDF63': 4,'\uD834\uDF64': 5,'\uD834\uDF65': 6,'\uD834\uDF66': 7,'\uD834\uDF67': 8,'\uD834\uDF68': 9, //!0 𝍠 𝍡 𝍢 𝍣 𝍤 𝍥 𝍦 𝍧 𝍨	//Счётные палочки
+			'\uD83A\uDCC7': 1,'\uD83A\uDCC8': 2,'\uD83A\uDCC9': 3,'\uD83A\uDCCA': 4,'\uD83A\uDCCB': 5,'\uD83A\uDCCC': 6,'\uD83A\uDCCD': 7,'\uD83A\uDCCE': 8,'\uD83A\uDCCF': 9, //!0 𞣇 𞣈 𞣉 𞣊 𞣋 𞣌 𞣍 𞣎 𞣏	//Письмо кикакуи для языка менде 1E800—1E8DF
+			'\uD80C\uDFFA': 1,'\uD80C\uDFFB': 2,'\uD80C\uDFFC': 3,'\uD80C\uDFFD': 4,'\uD80C\uDFFE': 5,'\uD80C\uDFFF': 6,'\uD80D\uDC00': 7,'\uD80D\uDC01': 8,'\uD80D\uDC02': 9, //!0 𓏺 𓏻 𓏼 𓏽 𓏾 𓏿 𓐀 𓐁 𓐂	//Hieroglyphic digits (Egyptian)
+			'\uD800\uDEE1': 1,'\uD800\uDEE2': 2,'\uD800\uDEE3': 3,'\uD800\uDEE4': 4,'\uD800\uDEE5': 5,'\uD800\uDEE6': 6,'\uD800\uDEE7': 7,'\uD800\uDEE8': 8,'\uD800\uDEE9': 9, //𐋠 𐋡 𐋢 𐋣 𐋤 𐋥 𐋦 𐋧 𐋨 𐋩 (,	 1  2  3  4  5  6  7  8  9)	//Coptic Epact Numbers
+			
+		//first char code from all this double symbols - go in the next "if"...
+	};
+
+	//console.log(Object.keys(replaces).join('')); //display all keys as string.
+	var result = ''; //define result variable.
+	for(i=0; i<string.length; i++){
+		if(//if current symbol is an "Replacement Character" and this is a first symbol from double char
+			string[i].search(/[\uD800-\uDFFF]/)!==-1
+		){
+			if(string.substring(i, i+2) in replaces){//and if this symbol was been found in replaces table object
+				result += default_digits[replaces[string.substring(i, i+2)]]; //return default digit
+			}else{//if not found
+				result += string[i]+string[i+1]; //return current double symbol;
+			}i++; //and skip next symbol.
+		}
+		else if(string[i] in replaces) { //if symbol was been found in the replaces table object
+			result += default_digits[replaces[string[i]]];	//return default, as defined in array
+		}else{//if symbol not found in the replaces table
+			result += string[i]; //just return this as is.
+		}
+	}
+	//return '"'+string+'" -> '+result; //string -> result;
+	return result; //just return result;
+}
+/*
+//tests
+console.log('\n\n Inside the string, replace digits from different numeral systems -> to default...');								//description
+console.log(replace_symbols("۴"));								//one symbol
+console.log(replace_symbols("-"));								//one unknown symbol
+console.log(replace_symbols("𑇡"));								//one Sinhala symbol
+console.log(replace_symbols("𑇨"));								//one Hieroglyphic(Egyptian) symbol
+console.log(replace_symbols("0۱౨3۴౫6۷౮9"));						//many symbols in the string
+console.log(replace_symbols("+𑇨-𑇤0۱౨3۴౫6۷౮9፩፪፫፬፭፮፯፰፱"));		//Hieroglyphic and Sinhala inside string
+console.log(replace_symbols("+-۱𓏼x"));							//+-, Hieroglyphic and text 
+console.log(replace_symbols("+-𑇡Добавить плейсхолдер :3x"));	//placeholder inside
+console.log(replace_symbols("١٢٣٬٤٥٦٫٧٨٩", 'COMMA'));			//replace comma to custom delimiter.
+//console.log(Object.keys(replace).join('')) inside, in the function, then replace_symbols('x'); after function
+//Now all symbols can be replaced for test. Text added before and after digits...
+console.log(replace_symbols("text0123456789,.٬٫𐋠۰۱۲۳۴۵۶۷۸۹٠١٢٣٧٨٩٤٥٦౦౧౨౩౪౫౬౭౮౯०१२३४५६७८९൦൧൨൩൪൫൬൭൮൯୦୧୨୩୪୫୬୭୮୯੦੧੨੩੪੫੬੭੮੯০১২৩৪৫৬৭৮৯૦૧૨૩૪૫૬૭૮૯೦೧೨೩೪೫೬೭೮೯០១២៣៤៥៦៧៨៩໐໑໒໓໔໕໖໗໘໙᥆᥇᥈᥉᥊᥋᥌᥍᥎᥏᠐᠑᠒᠓᠔᠕᠖᠗᠘᠙၀၁၂၃၄၅၆၇၈၉௦௧௨௩௪௫௬௭௮௯๐๑๒๓๔๕๖๗๘๙༠༡༢༣༤༥༦༧༨༩〇一二三四五六七八九零壹貳叄肆伍陸柒捌玖贰叁陆〡〢〣〤〥〦〧〨〩᧐᧑᧒᧓᧔᧕᧖᧗᧘᧙꧐꧑꧒꧓꧔꧕꧖꧗꧘꧙߀߁߂߃߄߅߆߇߈߉෦෧෨෩෪෫෬෭෮෯༳༪༫༬༭༮༯༰༱༲႐႑႒႓႔႕႖႗႘႙៰៱៲៳៴៵៶៷៸៹᪀᪁᪂᪃᪄᪅᪆᪇᪈᪉᪐᪑᪒᪓᪔᪕᪖᪗᪘᪙᭐᭑᭒᭓᭔᭕᭖᭗᭘᭙᮰᮱᮲᮳᮴᮵᮶᮷᮸᮹᱀᱁᱂᱃᱄᱅᱆᱇᱈᱉᱐᱑᱒᱓᱔᱕᱖᱗᱘᱙₀₁₂₃₄₅₆₇₈₉꘠꘡꘢꘣꘤꘥꘦꘧꘨꘩꣐꣑꣒꣓꣔꣕꣖꣗꣘꣙꤀꤁꤂꤃꤄꤅꤆꤇꤈꤉꧰꧱꧲꧳꧴꧵꧶꧷꧸꧹꩐꩑꩒꩓꩔꩕꩖꩗꩘꩙꯰꯱꯲꯳꯴꯵꯶꯷꯸꯹０１２３４５６７８９ⅠⅡⅢⅣⅤⅥⅦⅧⅨ፩፪፫፬፭፮፯፰፱①②③④⑤⑥⑦⑧⑨⑴⑵⑶⑷⑸⑹⑺⑻⑼⒈⒉⒊⒋⒌⒍⒎⒏⒐⓵⓶⓷⓸⓹⓺⓻⓼⓽❶❷❸❹❺❻❼❽❾➀➁➂➃➄➅➆➇➈➊➋➌➍➎➏➐➑➒𐒠𐒡𐒢𐒣𐒤𐒥𐒦𐒧𐒨𐒩𑃰𑃱𑃲𑃳𑃴𑃵𑃶𑃷𑃸𑃹𑄶𑄷𑄸𑄹𑄺𑄻𑄼𑄽𑄾𑄿𑇐𑇑𑇒𑇓𑇔𑇕𑇖𑇗𑇘𑇙𑋰𑋱𑋲𑋳𑋴𑋵𑋶𑋷𑋸𑋹𑛀𑛁𑛂𑛃𑛄𑛅𑛆𑛇𑛈𑛉𑑐𑑑𑑒𑑓𑑔𑑕𑑖𑑗𑑘𑑙𑓐𑓑𑓒𑓓𑓔𑓕𑓖𑓗𑓘𑓙𑙐𑙑𑙒𑙓𑙔𑙕𑙖𑙗𑙘𑙙𑜰𑜱𑜲𑜳𑜴𑜵𑜶𑜷𑜸𑜹𑣠𑣡𑣢𑣣𑣤𑣥𑣦𑣧𑣨𑣩𑱐𑱑𑱒𑱓𑱔𑱕𑱖𑱗𑱘𑱙𑵐𑵑𑵒𑵓𑵔𑵕𑵖𑵗𑵘𑵙𖩠𖩡𖩢𖩣𖩤𖩥𖩦𖩧𖩨𖩩𖭐𖭑𖭒𖭓𖭔𖭕𖭖𖭗𖭘𖭙𝟎𝟏𝟐𝟑𝟒𝟓𝟔𝟕𝟖𝟗𝟘𝟙𝟚𝟛𝟜𝟝𝟞𝟟𝟠𝟡𝟢𝟣𝟤𝟥𝟦𝟧𝟨𝟩𝟪𝟫𝟬𝟭𝟮𝟯𝟰𝟱𝟲𝟳𝟴𝟵𝟶𝟷𝟸𝟹𝟺𝟻𝟼𝟽𝟾𝟿𞥐𞥑𞥒𞥓𞥔𞥕𞥖𞥗𞥘𞥙🄁🄂🄃🄄🄅🄆🄇🄈🄉🄊𐄇𐄈𐄉𐄊𐄋𐄌𐄍𐄎𐄏𐧀𐧁𐧂𐧃𐧄𐧅𐧆𐧇𐧈𐹠𐹡𐹢𐹣𐹤𐹥𐹦𐹧𐹨𑁒𑁓𑁔𑁕𑁖𑁗𑁘𑁙𑁚𑇡𑇢𑇣𑇤𑇥𑇦𑇧𑇨𑇩𑱚𑱛𑱜𑱝𑱞𑱟𑱠𑱡𑱢𒐕𒐖𒐗𒐘𒐙𒐚𒐛𒐜𒐝𝍠𝍡𝍢𝍣𝍤𝍥𝍦𝍧𝍨𞣇𞣈𞣉𞣊𞣋𞣌𞣍𞣎𞣏𓏺𓏻𓏼𓏽𓏾𓏿𓐀𓐁𓐂𐋡𐋢𐋣𐋤𐋥𐋦𐋧𐋨𐋩_not_founded_double_Hierogliph(𓃠𓃠𓃠)single_replacement_character(���)пароходик: 🚢", 'COMMA'));			//replace comma to custom delimiter.
+*/
+
+
+//function to replace digits in the string and interpreting decimal and float separators...
+function replace_digits_and_interpretting_delimiters(string){
+
+	//document.getElementById("result").innerHTML = '';
+
+	var result_string = '';
+	result_string = replace_symbols(string);
+
+	//test
+//	console.log(
+//		'\n\n', string, ' - original string'
+//	,	'\n '+result_string, ' - result_string with dots and commas'
+//	);	
+	
+
+	//interpreting decimal and float delimiters... Replace commas and dots.
+	var dots_indexes_for_replace = [];
+	var need_to_check_number_after_dot = false;
+	var current_number_is_digit_after_dot = false;
+	var first_dot_in_number = false;
+	var set_first_dot = true;
+	var deleted_comma = 0;
+	var count_number_where_dot_is_once = 0;
+	var not_delete_this_dot = 0;
+	var calculate_digits_after_comma = 0;
+	//replace comma to dot or not?
+
+	var result_string2 = '';
+	var replace_comma_to_ = '.';
+	var replaced_commas_to_dot = 0;
+	
+	for(s=0;s<result_string.length;s++){//working with each symbol in the result_string.
+		if(typeof result_string[s+1]==='undefined'){result_string2 += result_string[s]; break;}
+		if(result_string[s]===','){//if comma founded...
+			//console.log('comma founded');
+			for(j=1;j<=6;j++){ //see next 6 symbols after comma. Because Indian trillion writed as: "1,00000,00,00,000"
+				//console.log('\n\n j = ', j);
+				if(typeof result_string[s+j] === 'undefined'){ //if no any symbols as next symbol
+					//console.log('i+j === undefined_symbol, j=',j);
+					if(j==1){		//if undefined was been the first symbol, after comma, 
+						replace_comma_to_='';		//do not replace comma to dot. Delete this. "123," -> ""
+						deleted_comma++;
+					}
+					break;//and stop cycle.
+				}
+				if(result_string[s+j]===','){//if current symbol is a comma
+					//console.log('comma founded within 4 next symbols, "," -> ""');
+					replace_comma_to_ = '';
+					deleted_comma++;
+					break; //',' -> '';
+				}
+				
+				//console.log('testing next symbol... position: ', j, ', char: ', result_string[s+j]);
+				var next_symbol = replace_symbols(result_string[s+j]); //if next symbol is exists - see this as replaced symbol
+				//console.log('next_symbol replaced... position: ', j, ', char: ', next_symbol);
+				
+				if(!(/^\d+$/.test(next_symbol))){//if replaced character is not digit, 0 digits after comma
+					//console.log('not a digit', j);
+					if(j==1){//if this character after comma
+						//console.log('0 digits after comma, ","->""');
+						replace_comma_to_ = '';
+						deleted_comma++;
+						break; //not replace to dot: "123,x" -> 123x
+					}
+					else if(j<=3){//if this character (not a digit) is 2-st, 3-rd after previous comma... then 1 or 2 digits after comma.
+						//console.log('digits after previous comma <= 2, ","->"."');
+						replace_comma_to_ = '.';						
+							//console.log('1 TEST');
+						break; //","->"."; "123,4x" -> 123.4x; "123,45x" -> 123.45x
+					}
+					else{
+							//console.log('2 TEST');
+					}
+				}
+				else{
+					if(j===3 && (typeof result_string[s+4] === 'undefined' || !(/^\d+$/.test(replace_symbols(result_string[s+4]))))){
+					//if three symbols was been a digits, and next symbol not a digit, or undefined
+						//console.log('(j===3), ","->"", comma is decimal delimiter in this case...');
+						replace_comma_to_ = '';
+						deleted_comma++;
+						break; //then this can be decimal delimiter: "123,456"-> 123456; "123,456x" -> 123456x
+					}
+					else if(next_symbol===',')// || next_symbol==='٬')
+					{
+						//and if was been the digits after previous comma, and second comma founded...
+						//console.log('again comma, ","->"", break;');
+						replace_comma_to_ = '';
+						deleted_comma++;
+						break;	//do not replace this as dot, and this can be decimal delimiter.
+						//lakh:		"1,00,000" -> 100000
+						//crore: 	"1,00,00,000" -> 10000000
+						//शङ्कु (śaṅku)	1,00,000 koṭi	10^12	One trillion: "1,00000,00,00,000" -> 1000000000000
+						//comma as decimal delimiter: "123,456,789"	-> 123456789
+						//"123,4,56789" -> 123456789 //also as decimal.
+					}
+					else{	//if next number is digit
+						//replace_comma_to_ = '';	//delete comma; "1,1,1.1" -> 111.1, "1,1[,]1.1" -> 11''1.1
+						//deleted_comma++;
+						
+						replace_comma_to_ = '.';		//to comma...
+						//	console.log('........TEST, (/^\d+$/.test(next_symbol))', (/^\d+$/.test(next_symbol)), 'next_symbol = ', next_symbol);
+						break;
+					}
+				}
+			}
+		}
+		
+		
+		
+		//after interpreting comma, replace next symbol.
+		
+		//console.log('replace_comma_to_', replace_comma_to_);
+		var replaced_character2 = replace_symbols(result_string[s], replace_comma_to_);
+		//console.log(replaced_character2)
+
+		//delete dot or not?
+		if(replaced_character2==='.' && result_string[s]!==','){//если найдена точка
+			//console.log('dot found. index = ', s);
+			if(typeof result_string[s+1]!=='undefined'){		//и если следующий символ есть
+				if(set_first_dot===true){						//когда нужно установить точку как первую
+					set_first_dot = false;						//сбросить этот параметр в false
+					
+					if(first_dot_in_number===true){dots_indexes_for_replace.pop();}
+					first_dot_in_number = true;					//и установить, что найдена первая точка.
+					count_number_where_dot_is_once++;
+					
+					//console.log('push ', (s-deleted_comma+replaced_commas_to_dot), 's'+s, 'deleted_comma'+deleted_comma, 'replaced_commas_to_dot'+replaced_commas_to_dot);
+					dots_indexes_for_replace.push(s-deleted_comma+replaced_commas_to_dot);				//добавить её индекс в массив
+					//console.log('push ', (s-deleted_comma+replaced_commas_to_dot));
+					need_to_check_number_after_dot = true;
+					//console.log('set_first_dot - true ->', set_first_dot, ', first_dot_in_number -> ', first_dot_in_number, ', dots_indexes_for_replace = ', dots_indexes_for_replace);
+				}
+				else{
+					//if(first_dot_in_number===true){dots_indexes_for_replace.pop();}
+					
+					//dots_indexes_for_replace.push(s-deleted_comma+replaced_commas_to_dot);				//добавить её индекс в массив
+					//console.log('push3: (s-deleted_comma+replaced_commas_to_dot) ', (s-deleted_comma+replaced_commas_to_dot),
+					//'s', s, 'deleted_comma', deleted_comma, 'replaced_commas_to_dot', replaced_commas_to_dot,
+					//'dots_indexes_for_replace', dots_indexes_for_replace);
+					dots_indexes_for_replace.push(s);				//добавить её индекс в массив
+					//console.log('push3: ', (s), 'dots_indexes_for_replace', dots_indexes_for_replace, 'first_dot_in_number', first_dot_in_number, 'set_first_dot', set_first_dot);
+					
+					//console.log('push2 ', (s-deleted_comma+replaced_commas_to_dot));
+					first_dot_in_number = false;
+					need_to_check_number_after_dot = true;			//и задать необходимость проверки следующего символа на то, является ли он числом.
+					//console.log('push index=', s, ', first_dot_in_number = ', first_dot_in_number, ' dots_indexes_for_replace', dots_indexes_for_replace);
+				}
+			}
+			else{//else if this dot in the end of the result_string - leave this.
+				//console.log('ELSE...');
+			
+			}
+		}
+		else if(replaced_character2==='.' && result_string[s]===','){
+			//console.log('dot corresponding the comma...');
+			if(typeof result_string[s+1]!=='undefined'){		//и если следующий символ есть
+				if(set_first_dot===true){						//когда нужно установить точку как первую
+					set_first_dot = false;						//сбросить этот параметр в false
+					
+					if(first_dot_in_number===true){first_dot_in_number = false;}
+					first_dot_in_number = true;					//и установить, что найдена первая точка.
+					count_number_where_dot_is_once++;
+					
+					//console.log('push ', (s-deleted_comma+replaced_commas_to_dot), 's'+s, 'deleted_comma'+deleted_comma, 'replaced_commas_to_dot'+replaced_commas_to_dot);
+					dots_indexes_for_replace.push(s-deleted_comma+replaced_commas_to_dot);				//добавить её индекс в массив
+					
+					//console.log('push ', (s-deleted_comma+replaced_commas_to_dot));
+					need_to_check_number_after_dot = true;
+					//console.log('set_first_dot - true ->', set_first_dot, ', first_dot_in_number -> ', first_dot_in_number, ', dots_indexes_for_replace = ', dots_indexes_for_replace);
+				}
+				else{
+					//console.log("another case...");
+//console.log('test2');
+//dots_indexes_for_replace.push(s-deleted_comma);				//добавить её индекс в массив
+dots_indexes_for_replace.push(s-deleted_comma+replaced_commas_to_dot);				//добавить её индекс в массив
+					//console.log('push2 ', (s-deleted_comma));
+					first_dot_in_number = false;
+					set_first_dot = true;
+					need_to_check_number_after_dot = true;			//и задать необходимость проверки следующего символа на то, является ли он числом.
+					//console.log('push index=', s, ', first_dot_in_number = ', first_dot_in_number, ' dots_indexes_for_replace', dots_indexes_for_replace);	
+				}
+			}
+			else{
+				//else if this dot in the end of the result_string - leave this.
+				//console.log('......next_symbol is undefined...');
+			}
+		}
+		
+		if(need_to_check_number_after_dot===true){				//если надо надо было проверить следующий символ и это он
+			if((/^\d+$/.test(replaced_character2))){			//если это число
+				//не удалять первую точку. !!!!!!
+				current_number_is_digit_after_dot = true; 		//пометить как число.
+			}
+			else if(replaced_character2!=='.'){					//если это не число и это была не точка
+				need_to_check_number_after_dot = false;			//не проверять дальше				
+				set_first_dot = true;							//искать первую точку снова.
+				if(first_dot_in_number===true){
+					dots_indexes_for_replace.pop(); //delete previous dot from array.
+					first_dot_in_number = false;				//это не первая точка, искать следующую...
+				}
+			}
+			else if(replaced_character2==='.'){					//если найдена вторая точка после точки
+				//тогда надо удалить все точки, но они удаляются и так...
+			}
+			if(
+				result_string[s]===","	//if german number 123.456,789 and comma after dot
+			||  result_string[s]==='٬'	//or if this was been persian comma, after dot
+			||	result_string[s]==='\uD800\uDEE0'	//or coptic
+			){				
+				if(first_dot_in_number===true){	//and if only one dot in number
+					var dig_after = 0;
+					for(z=1;z<=6;z++){
+						if(typeof result_string[s+z] ==='undefined'){break}
+						else if(/^\d+$/.test(result_string[s+z])){dig_after++}
+						else{break;}
+					}
+					if(dig_after==0){first_dot_in_number = false;}//lock this index.
+					else if(dig_after<=2 && result_string[s+dig_after+1]!==','){first_dot_in_number = true;}//lock this index.
+					else if(dig_after<=2 && result_string[s+dig_after+1]===','){first_dot_in_number = false;}//lock this index.
+					else if(dig_after==3){first_dot_in_number = false;}//lock this index.
+					else if(dig_after<3){first_dot_in_number = true;}//lock this index.
+				}
+				
+				replaced_character2 = '.';
+				replaced_commas_to_dot++;
+				deleted_comma++;
+				set_first_dot = true;
+				
+				if(typeof result_string[s-4] !== 'undefined' && result_string[s-4]==='.'){
+					//this can be german number
+					first_dot_in_number = true;	//so don't delete this dot, after replace comma. "123.456.789[,]12" -> 123456789[.]12
+				}
+
+				if(typeof result_string[s+1] === 'undefined' || !(/^\d+$/.test(result_string[s+1]))){
+					
+					var previous_comma_found = false;
+					for(p=s-1; p>=0; p--){
+						if(/^\d+$/.test(result_string[p])){continue;}
+						else if(result_string[p]===','){
+							previous_comma_found = true;
+							break;
+						}
+						else{break;}
+					}
+					if(previous_comma_found===true){
+						set_first_dot = false;
+						first_dot_in_number=false;
+						dots_indexes_for_replace.push(s);
+					}
+				}
+				else if(first_dot_in_number===true){
+					var previous_comma_found = false;
+					for(p=s-1; p>=0; p--){
+						if(/^\d+$/.test(result_string[p])){continue;}
+						else if(result_string[p]===','){
+							previous_comma_found = true;
+							break;
+						}
+						else{break;}
+					}
+					if(previous_comma_found===true){
+						set_first_dot = false;
+						first_dot_in_number=false;
+					}
+				}
+			}
+			//else, if this dot - delete previous dot.
+		}
+		
+		result_string2 += replaced_character2; //"一二三,四五六.七八九" -> 123456.789, "一二三,四五六.七.八九" -> 123456789 (because many dots)
+	}
+	
+	if(first_dot_in_number!==false){			//если это первая точка в числе...
+		dots_indexes_for_replace.pop();		//не удалять первую точку в числе !!!!!!
+	}
+
+	
+	for(d=0;d<dots_indexes_for_replace.length;d++){
+		result_string2 = result_string2.substr(0,dots_indexes_for_replace[d]-d)+''+result_string2.substr(dots_indexes_for_replace[d]+1-d, result_string2.length);
+		//console.log('d = ', d, ', replace dots: result_string2', result_string2);
+	}
+		//uncomment to test	
+//	document.getElementById("string").setAttribute('title', result_string2);	//add title to input
+//	document.getElementById("string").value = string;
+	
+//	document.getElementById("result").innerHTML += '<br>"'+string+'" -> ';
+//	document.getElementById("result").innerHTML += (typeof result_string2 === 'undefined') ? '' : result_string2;
+
+//	console.log('"'+string+'" -> '+result_string2);
+	return result_string2;	//just return string with replaced numbers.
+}
+/*
+//tests
+replace_digits_and_interpretting_delimiters('123,456,789.156');
+
+replace_digits_and_interpretting_delimiters('186,184');
+replace_digits_and_interpretting_delimiters('١٢٣٬٤٥٦٫٧٨٩');
+replace_digits_and_interpretting_delimiters('(١٥٠ ГВт × ٨٠٠ ч) -> petaJoules');
+replace_digits_and_interpretting_delimiters('(१५०,486 ГВт × ८००.7984 ч) -> petaJoules');
+replace_digits_and_interpretting_delimiters('(१५०,48 ГВт × ८००.7984 ч) -> petaJoules');
+replace_digits_and_interpretting_delimiters('12,8');
+replace_digits_and_interpretting_delimiters('150,48a');
+replace_digits_and_interpretting_delimiters('1,00,000');
+replace_digits_and_interpretting_delimiters('1,00,00,000');
+replace_digits_and_interpretting_delimiters('123,456');
+replace_digits_and_interpretting_delimiters('123,4567');
+replace_digits_and_interpretting_delimiters('123,4');
+replace_digits_and_interpretting_delimiters('123,45');
+replace_digits_and_interpretting_delimiters('123,456');
+replace_digits_and_interpretting_delimiters('123,4a');
+replace_digits_and_interpretting_delimiters('123,45a');
+replace_digits_and_interpretting_delimiters('123,456a');
+replace_digits_and_interpretting_delimiters('123,456,');
+replace_digits_and_interpretting_delimiters('123,456,1');
+replace_digits_and_interpretting_delimiters('123,456.1');
+replace_digits_and_interpretting_delimiters('1,1,1,1,1,1');
+replace_digits_and_interpretting_delimiters('1.23456');
+replace_digits_and_interpretting_delimiters('1.2.3.4.5.6');
+replace_digits_and_interpretting_delimiters('1.23456 1.2');
+replace_digits_and_interpretting_delimiters('1.234.56 1.2 123.456.789');
+replace_digits_and_interpretting_delimiters('1,234,567.891011 123.456,78');
+replace_digits_and_interpretting_delimiters('123.456,78');
+replace_digits_and_interpretting_delimiters('1,1,1.1');
+replace_digits_and_interpretting_delimiters('123.456.789');
+replace_digits_and_interpretting_delimiters('123.456.789,12');
+replace_digits_and_interpretting_delimiters('something102asd123,456,789.11fk123,456j1948948_123.456.789,12_5.6.7.8,text');
+replace_digits_and_interpretting_delimiters('текст_١٢٣٬١٢٣٬٤٥٦٬٤٥٦٫٧٨٩_тексттекст123текст123,456текст123,456.789текст123.456789тексттекст123текст123456текст123456.789текст123456.789тексттекст10,00,00,00,00,000.123456');
+replace_digits_and_interpretting_delimiters('-1');
+replace_digits_and_interpretting_delimiters('+1');
+replace_digits_and_interpretting_delimiters('-1.5');
+replace_digits_and_interpretting_delimiters('+1.5');
+replace_digits_and_interpretting_delimiters('-123,456.789');
+replace_digits_and_interpretting_delimiters('+123,456.789');
+replace_digits_and_interpretting_delimiters('текст-123.456,789текст');
+replace_digits_and_interpretting_delimiters('1,00000,00000,00000,00000,00000,00000,00000,00000,00,00,000 (Indian number)');
+*/	  
+//</script>
+
+ 
+ 
 var $jscomp=$jscomp||{};$jscomp.scope={};$jscomp.ASSUME_ES5=!1;$jscomp.ASSUME_NO_NATIVE_MAP=!1;$jscomp.ASSUME_NO_NATIVE_SET=!1;$jscomp.defineProperty=$jscomp.ASSUME_ES5||"function"==typeof Object.defineProperties?Object.defineProperty:function(C,da,Y){C!=Array.prototype&&C!=Object.prototype&&(C[da]=Y.value)};$jscomp.getGlobal=function(C){return"undefined"!=typeof window&&window===C?C:"undefined"!=typeof global&&null!=global?global:C};$jscomp.global=$jscomp.getGlobal(this);$jscomp.SYMBOL_PREFIX="jscomp_symbol_";
 $jscomp.initSymbol=function(){$jscomp.initSymbol=function(){};$jscomp.global.Symbol||($jscomp.global.Symbol=$jscomp.Symbol)};$jscomp.Symbol=function(){var C=0;return function(da){return $jscomp.SYMBOL_PREFIX+(da||"")+C++}}();
 $jscomp.initSymbolIterator=function(){$jscomp.initSymbol();var C=$jscomp.global.Symbol.iterator;C||(C=$jscomp.global.Symbol.iterator=$jscomp.global.Symbol("iterator"));"function"!=typeof Array.prototype[C]&&$jscomp.defineProperty(Array.prototype,C,{configurable:!0,writable:!0,value:function(){return $jscomp.arrayIterator(this)}});$jscomp.initSymbolIterator=function(){}};
@@ -684,35 +1192,37 @@ u=b["Data.Units.Time"],ua=b["Data.Units.USCustomary"],aa=b["Insect.Language"],x=
 Aa=function(a){return function(b){return function(d){return k.bind(x.bindParserT(a))(b)(function(h){return k.bind(x.bindParserT(a))(U.many(x.alternativeParserT(a))(x.lazyParserT)(g.applySecond(x.applyParserT(a))(d)(b)))(function(b){return c.pure(x.applicativeParserT(a))(new H.NonEmpty(h,b))})})}}},
 
 V=new D([
-	new L(P.kibi,["kibi","Ki","киби","Ки"])
-,	new L(P.mebi,["mebi","Mi","меби","Mи"])
-,	new L(P.gibi,["gibi","гиби"])					//+ [Gi] after giga G
-,	new L(P.tebi,["tebi","Ti","теби","Ти"])
-,	new L(P.pebi,["pebi","Pi","пеби","Пи"])
-,	new L(P.exbi,["exbi","Ei","эксби","Эи"])
-,	new L(P.zebi,["zebi","Zi","зеби","Зи"])
-,	new L(P.yobi,["yobi","Yi","йоби","Йи"])
-,	new L(P.atto,["atto","a","атто","а"])
-,	new L(P.femto,["femto","f","фемто","ф"])
-,	new L(P.pico,["pico","пико"])				//+[p,п] after peta [P,пета]
-,	new L(P.nano,["nano","n","нано","н"])
-,	new L(P.micro,["micro","u","\u00b5","\u03bc","микро","мк"])
-,	new L(P.milli,["milli","милли"])				//+ [m, м] after mega [M, М]
-,	new L(P.centi,["centi","c","санти","с"])
-,	new L(P.deci,["deci","d","деци","д"])
-,	new L(P.hecto,["hecto","h","гекто"])			//+ [г] after giga [Г]
-,	new L(P.kilo,["kilo","k","кило","к"])
-	//mega moved before milli. Else, megaJoules not working.
-,	new L(P.mega,["Mega","mega","Мега","мега","M",/*latin*/"М"/*cyrillic*/])		//mega - fail, if after milli. M letter. Now 1 megaByte is ok.
-,	new L(P.milli,["m","м"]) //after mega [M,М]										//1mm, 1мм - OK, 1 megaJoules - OK.
-,	new L(P.giga,["giga","Giga","гига","Гига"]) //+ [Г] after Ги
-,	new L(P.gibi,["Gi","Ги"])						//after Gi, гига and Г
-,	new L(P.giga,["G","Г"])							//After Ги
-,	new L(P.hecto,["г"])							//after гига and Г
-,	new L(P.tera,["tera","T","тера","Т"])
-,	new L(P.peta,["peta","P","пета","П"])
-,	new L(P.pico,["p","п"])							//after peta [P,пета]
-,	new L(P.exa,["Exa","exa","E","Экза","экза","Э"])
+	new L(P.kibi,["kibi","Kibi","киби","Киби"])									//+["Ki","Ки"], after Kilo, Кило
+,	new L(P.mebi,["mebi","Mebi","меби","Меби"])									//+ [Mi, Ми] after Milli, Милли
+,	new L(P.gibi,["gibi","Gibi","гиби","Гиби"])									//+ [Gi, Ги] after giga G
+,	new L(P.tebi,["tebi","Tebi","Ti","теби","Теби","Ти"])
+,	new L(P.pebi,["pebi","Pebi","пеби","Пеби"])									//+ [Pi, Пи], after Pico, Пико
+,	new L(P.exbi,["exbi","Exbi","Ei","эксби","Эксби","Эи"])
+,	new L(P.zebi,["zebi","Zebi","Zi","зеби","Зеби","Зи"])
+,	new L(P.yobi,["yobi","Yobi","Yi","йоби","Йоби","Йи"])
+,	new L(P.atto,["atto","Atto","a","атто","Атто","а"])
+,	new L(P.femto,["femto","Femto","f","фемто","Фемто","ф"])
+,	new L(P.pico,["pico","Pico","пико","Пико"])									//+[p,п] after peta [P,пета]
+,	new L(P.pebi,["Pi", "Пи"])													//after Pico, Пико
+,	new L(P.nano,["nano","Nano","n","нано","Нано","н"])
+,	new L(P.micro,["micro","Micro","u","\u00b5","\u03bc","микро","Микро","мк"])
+,	new L(P.milli,["milli","Milli","милли","Милли"])							//+ [m, м] after mega [M, М]
+,	new L(P.mebi,["Mi","Mи"])													//after Milli, Милли
+,	new L(P.centi,["centi","Centi","c","санти","Санти","с"])
+,	new L(P.deci,["deci","Deci","d","деци","Деци","д"])
+,	new L(P.hecto,["hecto","Hecto","h","гекто","Гекто"])						//+ [г] after giga [Г]
+,	new L(P.kilo,["kilo","Kilo","k","кило","Кило","к"])
+,	new L(P.kibi,["Ki","Ки"])													//after Kilo, Кило
+,	new L(P.mega,["mega","Mega","мега","Мега","M",/*latin*/"М"/*cyrillic*/])
+,	new L(P.milli,["m","м"]) 													//after mega [M,М]	//1mm, 1мм - OK, 1 megaJoules - OK.
+,	new L(P.giga,["giga","Giga","гига","Гига"]) 								//+ [G, Г] after Gi, Ги
+,	new L(P.gibi,["Gi","Ги"])													//after Gi, гига and Г
+,	new L(P.giga,["G","Г"])														//After Ги
+,	new L(P.hecto,["г"])														//after гига and Г
+,	new L(P.tera,["tera","Tera","T","тера","Тера","Т"])
+,	new L(P.peta,["peta","Peta","P","пета","Пета","П"])
+,	new L(P.pico,["p","п"])														//after peta [P,пета]
+,	new L(P.exa,["exa","Exa","E","экза","Экза","Э"])
 ]);
 
 da=new D([
@@ -876,7 +1386,36 @@ Ea=function(a){var b=function(a){return c.when(x.applicativeParserT(l.monadIdent
 args:d,expr:a})})})})})})})))(function(a){return k.discard(k.discardUnit)(x.bindParserT(l.monadIdentity))(b(a.name))(function(){if(a.args instanceof F.Nothing)return c.pure(x.applicativeParserT(l.monadIdentity))(new aa.VariableAssignment(a.name,a.expr));if(a.args instanceof F.Just)return k.discard(k.discardUnit)(x.bindParserT(l.monadIdentity))(p.traverse_(x.applicativeParserT(l.monadIdentity))(H.foldableNonEmpty(N.foldableList))(b)(a.args.value0))(function(){return c.pure(x.applicativeParserT(l.monadIdentity))(new aa.FunctionAssignment(a.name,
 a.args.value0,a.expr))});throw Error("Failed pattern match at Insect.Parser line 493, column 3 - line 497, column 45: "+[a.args.constructor.name]);})})};a.DictEntry=L;a.Dictionary=D;a.commands=A;a.prefixDict=V;a.normalUnitDict=da;a.imperialUnitDict=P;a.parseInsect=function(a){return function(b){b=x.runParser(b);var c=d.alt(x.altParserT(l.monadIdentity))(d.alt(x.altParserT(l.monadIdentity))(r.map(x.functorParserT(l.functorIdentity))(aa.Command.create)(Pa))(Ea(a)))(r.map(x.functorParserT(l.functorIdentity))(aa.Expression.create)(O(a)));
 return b(c)}}})(b["Insect.Parser"]=b["Insect.Parser"]||{});(function(a){var d=b["Control.Bind"],c=b["Data.Array"],g=b["Data.Either"],k=b["Data.Map"],v=b["Data.Ord"],n=b["Data.Semigroup"],m=b["Data.Set"],w=b["Data.Show"],t=b["Data.Unfoldable"],C=b["Insect.Environment"],p=b["Insect.Format"],r=b["Insect.Interpreter"],l=b["Insect.Parser"],U=b["Text.Parsing.Parser"],N=function(){var a=function(a){return a.value1},b=function(b){return d.bind(d.bindArray)(b.value0)(a)};return c.sort(v.ordString)(n.append(n.semigroupArray)(b(l.normalUnitDict))(n.append(n.semigroupArray)(b(l.imperialUnitDict))(["d",
-"t"])))}(),M=function(a){if(a instanceof r.Info)return"info";if(a instanceof r.Error)return"error";if(a instanceof r.Value)return"value";if(a instanceof r.ValueSet)return"value-set";throw Error("Failed pattern match at Insect line 42, column 1 - line 42, column 39: "+[a.constructor.name]);};C=C.initialEnvironment;var F=p.fmtPlain,H=p.fmtJqueryTerminal,S=p.fmtConsole,X=l.commands;a.repl=function(a){return function(b){return function(c){c=l.parseInsect(b)(c);if(c instanceof g.Left){var d=U.parseErrorPosition(c.value0);
-return{msg:p.format(a)([p.optional(p.text("  ")),p.error("Parse error at position "+(w.show(w.showInt)(d.column)+": ")),p.text(U.parseErrorMessage(c.value0))]),msgType:"error",newEnv:b}}if(c instanceof g.Right){c=r.runInsect(b)(c.value0);if(c.msg instanceof r.Message)return{msgType:M(c.msg.value0),msg:p.format(a)(c.msg.value1),newEnv:c.newEnv};if(c.msg instanceof r.MQuit)return{msgType:"quit",msg:"",newEnv:c.newEnv};if(c.msg instanceof r.MClear)return{msgType:"clear",msg:"",newEnv:c.newEnv};throw Error("Failed pattern match at Insect line 68, column 10 - line 80, column 36: "+
-[c.msg.constructor.name]);}throw Error("Failed pattern match at Insect line 53, column 3 - line 80, column 36: "+[c.constructor.name]);}}};a.initialEnvironment=C;a.supportedUnits=N;a.fmtPlain=F;a.fmtJqueryTerminal=H;a.fmtConsole=S;a.commands=X;a.functions=function(a){return n.append(n.semigroupArray)(m.toUnfoldable(t.unfoldableArray)(k.keys(a.functions)))(["sum","product"])};a.identifiers=function(a){return m.toUnfoldable(t.unfoldableArray)(k.keys(a.values))}})(b.Insect=b.Insect||{});da.exports=b.Insect},
+"t"])))}(),M=function(a){if(a instanceof r.Info)return"info";if(a instanceof r.Error)return"error";if(a instanceof r.Value)return"value";if(a instanceof r.ValueSet)return"value-set";throw Error("Failed pattern match at Insect line 42, column 1 - line 42, column 39: "+[a.constructor.name]);};C=C.initialEnvironment;var F=p.fmtPlain,H=p.fmtJqueryTerminal,S=p.fmtConsole,X=l.commands;
+
+	  a.repl=function(a){
+	return function(b){
+		return function(c){
+			//c=l.parseInsect(b)(c);	//previous version
+			//console.log('c', c, '\nreplace_digits_and_interpretting_delimiters(c)', replace_digits_and_interpretting_delimiters(c));
+			c=l.parseInsect(b)(
+				replace_digits_and_interpretting_delimiters(c)	//change digits to default and interpretting delimiters.
+			);
+			if(c instanceof g.Left){
+				var d=U.parseErrorPosition(c.value0);
+				return{
+					msg:p.format(a)([p.optional(p.text("  ")),p.error("Parse error at position "+(w.show(w.showInt)(d.column)+": ")),p.text(U.parseErrorMessage(c.value0))]),
+					msgType:"error",newEnv:b
+				}
+			}
+			if(c instanceof g.Right){
+				c=r.runInsect(b)(c.value0);
+				if(c.msg instanceof r.Message)return{
+					msgType:M(c.msg.value0),
+					msg:p.format(a)(c.msg.value1),
+					newEnv:c.newEnv
+				};
+				if(c.msg instanceof r.MQuit)return{msgType:"quit",msg:"",newEnv:c.newEnv};
+				if(c.msg instanceof r.MClear)return{msgType:"clear",msg:"",newEnv:c.newEnv};
+				throw Error("Failed pattern match at Insect line 68, column 10 - line 80, column 36: "+[c.msg.constructor.name]);
+			}throw Error("Failed pattern match at Insect line 53, column 3 - line 80, column 36: "+[c.constructor.name]);
+		}
+	}
+};
+a.initialEnvironment=C;a.supportedUnits=N;a.fmtPlain=F;a.fmtJqueryTerminal=H;a.fmtConsole=S;a.commands=X;a.functions=function(a){return n.append(n.semigroupArray)(m.toUnfoldable(t.unfoldableArray)(k.keys(a.functions)))(["sum","product"])};a.identifiers=function(a){return m.toUnfoldable(t.unfoldableArray)(k.keys(a.values))}})(b.Insect=b.Insect||{});da.exports=b.Insect},
 {"decimal.js":1}]},{},[2])(2)});
